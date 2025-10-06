@@ -1,17 +1,19 @@
 const { createServer: _createServer } = require('http');
-const { detectCase } = require('./convertToCase/detectCase');
 const { convertToCase } = require('./convertToCase');
 
 const paramsType = ['SNAKE', 'KEBAB', 'CAMEL', 'PASCAL', 'UPPER'];
 
 function createServer() {
   const server = _createServer((req, res) => {
-    const url = new URL(req.url, `http://${req.headers.host}`);
-    const path = url.pathname.slice(1);
+    // Parse URL by splitting on ? and using URLSearchParams
+    const [pathname, queryString = ''] = req.url.split('?');
+    const path = pathname.slice(1);
     const errorMessage = [];
     const response = {};
 
-    const params = Object.fromEntries(url.searchParams.entries());
+    const params = Object.fromEntries(
+      new URLSearchParams(queryString).entries(),
+    );
 
     // eslint-disable-next-line no-console
     console.log(path);
@@ -37,18 +39,21 @@ function createServer() {
     }
 
     if (errorMessage.length > 0) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.writeHead(400, 'Bad Request', { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ errors: errorMessage }));
 
       return;
     }
 
-    response.originalCase = detectCase(path);
+    // Call convertToCase with correct argument order and store result
+    const result = convertToCase(params.toCase, path);
+
+    response.originalCase = result.originalCase;
     response.targetCase = params.toCase;
     response.originalText = path;
-    response.convertedText = convertToCase(path, params.toCase).convertedText;
+    response.convertedText = result.convertedText;
 
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.writeHead(200, 'OK', { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(response));
   });
 
