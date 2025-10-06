@@ -15,11 +15,6 @@ function createServer() {
       new URLSearchParams(queryString).entries(),
     );
 
-    // eslint-disable-next-line no-console
-    console.log(path);
-    // eslint-disable-next-line no-console
-    console.log(params);
-
     if (!path) {
       errorMessage.push({
         message: `Text to convert is required. Correct request is: "/<TEXT_TO_CONVERT>?toCase=<CASE_NAME>".`,
@@ -46,7 +41,7 @@ function createServer() {
     }
 
     // Call convertToCase with correct argument order and store result
-    const result = convertToCase(params.toCase, path);
+    const result = convertToCase(path, params.toCase);
 
     response.originalCase = result.originalCase;
     response.targetCase = params.toCase;
